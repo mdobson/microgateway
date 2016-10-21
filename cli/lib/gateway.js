@@ -165,12 +165,14 @@ Gateway.prototype.reload = (options) => {
         const exists = fs.existsSync(cache);
         console.error("failed to retieve config from gateway. continuing, will try cached copy..");
         console.error(err);
-        if (!exists) {
-          console.error('cache configuration ' + cache + ' does not exist. exiting.');
-          return;
-        } else {
-          console.log('using cached configuration from %s', cache);
-          config = edgeconfig.load({source: cache})
+        if(!exists){
+          return cb('cache configuration '+cache+' does not exist. exiting.');
+        }else{
+          console.log('using cached configuration from %s',cache);
+          config = edgeconfig.load({source:cache})
+          if(options.port){
+            config.system.port = parseInt(options.port);
+          }
         }
       } else {
         edgeconfig.save(config, cache);
@@ -196,7 +198,6 @@ Gateway.prototype.reload = (options) => {
   });
   socket.connect(ipcPath);
 };
-
 
 Gateway.prototype.stop = (options) => {
   var socket = new JsonSocket(new net.Socket()); //Decorate a standard net.Socket with JsonSocket
