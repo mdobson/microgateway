@@ -10,7 +10,7 @@ const JsonSocket = require('./json-socket');
 const configLocations = require('../../config/locations');
 const isWin = /^win/.test(process.platform);
 const ipcPath = configLocations.getIPCFilePath();
-const defaultPollInterval = 600;
+const defaultPollInterval = 10;
 
 const Gateway = function () {
 };
@@ -50,12 +50,12 @@ Gateway.prototype.start =  (options) => {
         console.log('using cached configuration from %s', cache);
         config = edgeconfig.load({source: cache});
         if (options.port) {
-          config.edgemicro.port = parseInt(options.port);
+          config.system.port = parseInt(options.port);
         }
       }
     } else {
       if (options.port) {
-        config.edgemicro.port = parseInt(options.port);
+        config.system.port = parseInt(options.port);
       }
       edgeconfig.save(config, cache);
     }
@@ -116,7 +116,7 @@ Gateway.prototype.start =  (options) => {
       process.exit(0);
     });
 
-    var pollInterval = config.edgemicro.config_change_poll_interval || defaultPollInterval;
+    var pollInterval = config.system.config_change_poll_interval || defaultPollInterval;
     // Client Socket for auto reload
     // send reload message to socket.
     var clientSocket = new JsonSocket(new net.Socket()); //Decorate a standard net.Socket with JsonSocket
@@ -134,7 +134,7 @@ Gateway.prototype.start =  (options) => {
             reloadOnConfigChange(oldConfig, cache, opts);
           }, pollInterval * 1000);
         } else {
-          pollInterval = config.edgemicro.config_change_poll_interval ? config.edgemicro.config_change_poll_interval : pollInterval;
+          pollInterval = config.system.config_change_poll_interval ? config.system.config_change_poll_interval : pollInterval;
           var isConfigChanged = hasConfigChanged(oldConfig, newConfig);
           if (isConfigChanged) {
             console.log('Configuration change detected. Saving new config and Initiating reload');
@@ -178,11 +178,13 @@ Gateway.prototype.start = function start(options, cb) {
         const exists = fs.existsSync(cache);
         console.error("failed to retieve config from gateway. continuing, will try cached copy..");
         console.error(err);
-        if(!exists){
-          return cb('cache configuration '+cache+' does not exist. exiting.');
-        }else{
-          console.log('using cached configuration from %s',cache);
-          config = edgeconfig.load({source:cache})
+
+        if (!exists) {
+          console.error('cache configuration ' + cache + ' does not exist. exiting.');
+          return;
+        } else {
+          console.log('using cached configuration from %s', cache);
+          config = edgeconfig.load({source: cache});
           if(options.port){
             config.system.port = parseInt(options.port);
           }
@@ -256,5 +258,7 @@ Gateway.prototype.status = (options) => {
 
 function hasConfigChanged(oldConfig, newConfig) {
   // This may not be the best way to do the check. But it works for now.
-  return JSON.stringify(oldConfig) != JSON.stringify(newConfig);
+  var hasChanged = JSON.stringify(oldConfig) != JSON.stringify(newConfig);
+  console.log("Config change detected: ", hasChanged);
+  return hasChanged;
 }
