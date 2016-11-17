@@ -123,9 +123,9 @@ Gateway.prototype.start =  (options) => {
     // send reload message to socket.
     var clientSocket = new JsonSocket(new net.Socket()); //Decorate a standard net.Socket with JsonSocket
     clientSocket.connect(ipcPath);
-
+    edgeconfig.setRefreshing(clientSocket);
     //start the polling mechanism to look for config changes
-    var reloadOnConfigChange = (oldConfig, cache, opts) => {
+    /*var reloadOnConfigChange = (oldConfig, cache, opts) => {
       console.log('Checking for change in configuration');
       var self = this;
       edgeconfig.get(opts, (err, newConfig) => {
@@ -152,7 +152,7 @@ Gateway.prototype.start =  (options) => {
     };
     setTimeout(()=> {
       reloadOnConfigChange(config, cache, {source: source, keys: keys});
-    }, pollInterval * 1000);
+    }, pollInterval * 1000);*/
   });
 };
 
