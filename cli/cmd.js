@@ -81,15 +81,18 @@ const setup = function setup() {
     .option('-d, --pluginDir <pluginDir>','absolute path to plugin directory')
     .option('-r, --port <portNumber>','override port in the config.yaml file')
     .option('-c, --configDir <configDir>', 'Set the directory where configs are read from.')
+    .option('--systemConfigPath <systemConfigPath>', 'path for system configuration')
     .description('start the gateway based on configuration')
     .action((options)=>{
       options.error = optionError;
+      options.systemConfigPath = options.systemConfigPath || process.env.EDGEMICRO_SYSTEM_CONFIG_PATH;
       options.secret = options.secret || process.env.EDGEMICRO_SECRET ;
       options.key =  options.key || process.env.EDGEMICRO_KEY;
       options.org = options.org || process.env.EDGEMICRO_ORG;
       options.env = options.env || process.env.EDGEMICRO_ENV;
       options.processes =  options.processes || process.env.EDGEMICRO_PROCESSES;
       options.configDir = options.configDir || process.env.EDGEMICRO_CONFIG_DIR;
+    
 
       if (options.port) {
         portastic.test(options.port)
@@ -100,10 +103,14 @@ const setup = function setup() {
             }
           });
       }
-      if (!options.key ) {return  options.error('key is required');}
-      if (!options.secret ) {return  options.error('secret is required');}
-      if (!options.org ) { return  options.error('org is required'); }
-      if (!options.env ) { return  options.error('env is required'); }
+
+      if(!options.systemConfigPath) {
+        if (!options.key ) {return  options.error('key is required');}
+        if (!options.secret ) {return  options.error('secret is required');}
+        if (!options.org ) { return  options.error('org is required'); }
+        if (!options.env ) { return  options.error('env is required'); }
+      }
+      
 
       // TODO once apid API is changed to no longer need env, this can go away
       process.env.ENV = options.env;
