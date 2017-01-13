@@ -161,19 +161,6 @@ Gateway.prototype.reload = (options) => {
   const cache = configLocations.getCachePath(options.org, options.env);
   const keys = {key: options.key, secret: options.secret};
 
-Gateway.prototype.start = function start(options, cb) {
-  const cache = configLocations.getCachePath(options.org, options.env);
-  const keys = { key: options.key, secret: options.secret };
-  const args = { target: cache, keys: keys, pluginDir: options.pluginDir };
-  const that = this;
-
-  if (cluster.isMaster) {
-    edgeconfig.get(null, function (err, config) {
-      args['config'] = config;
-      if(options.port){
-        config.system.port = parseInt(options.port);
-      }
-
   var socket = new JsonSocket(new net.Socket()); //Decorate a standard net.Socket with JsonSocket
   socket.on('connect', () => {
     edgeconfig.get({source: source, keys: keys}, (err, config) => {
